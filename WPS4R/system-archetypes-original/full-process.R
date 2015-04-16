@@ -29,17 +29,7 @@
 # required packages
 require(sp)
 require(raster)
-
-# code below only works with kohonen <= 2.0.15
-#kohonen215url <- "http://cran.r-project.org/src/contrib/Archive/kohonen/kohonen_2.0.15.tar.gz"
-#devtools::install_url(url = kohonen215url)
-#install.packages(kohonen215url, repos=NULL, type="source")
-if(packageVersion("kohonen")[1,3] > 15) {
-    stop(paste("This script only works with package kohonen version <= 2.0.15, but the version is ", 
-               packageVersion("kohonen")))
-}
 require(kohonen)
-
 require(vegan)
 require(maptools)
 
@@ -123,7 +113,7 @@ plot.kohcodes.my <-
                 margins[3] <- margins[3] + 2
             par(mar = margins)
             if (codeRendering == "segments" & nvars < 40 & !is.null(colnames(codes))) {
-                plot(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
+                kohonen:::plot.somgrid(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
                                                                             2]), -2))
                 
                 current.plot <- par("mfg")
@@ -145,7 +135,7 @@ plot.kohcodes.my <-
                                      plot = FALSE, ncol = min(maxlegendcols, nvars), 
                                      fill = palette.name(nvars), ...)
                 par(mfg = current.plot)
-                plot(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
+                kohonen:::plot.somgrid(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
                                                                             2]), -leg.result$rect$h))
                 legend(x = mean(x$grid$pts[, 1]), xjust = 0.5, y = 0, 
                        yjust = 1, cex = cex, plot = TRUE, legend = colnames(codes), 
@@ -153,7 +143,7 @@ plot.kohcodes.my <-
                        ...)
             }
             else {
-                plot(x$grid, ...)
+                kohonen:::plot.somgrid(x$grid, ...)
             }
             title.y <- max(x$grid$pts[, 2]) + 1.2
             if (title.y > par("usr")[4] - 0.2) {
