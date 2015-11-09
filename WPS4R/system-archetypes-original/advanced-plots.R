@@ -1,14 +1,12 @@
-# test file for creating the output maps
-
 # Base code by Tomas Vaclavik <tomas.vaclavik@ufz.de>
 
 # wps.off;
 # load feature space data (the one saved into the shapefile)
-setwd("C:/Users//Daniel/Documents/2014_GLUES/WPS4R/System-Archetypes/")
+setwd("C:/Users/Daniel/Documents/52N-Projects/2014_GLUES/WPS4R/System-Archetypes/")
 
 # load the data
 #source("full-process.R")
-load(file = "C:/Users/Daniel/Documents/2014_GLUES/WPS4R/System-Archetypes/sysarch-som_4_4_hexagonal_sample-976997_run-1.Rdata")
+load(file = "C:/Users/Daniel/Documents/52N-Projects/2014_GLUES/WPS4R/System-Archetypes/sysarch-som_4_4_hexagonal_916195_1.Rdata")
 #.som.fs <- systemArchetypesData
 
 
@@ -43,6 +41,55 @@ preparePlotData <- function(data) {
     
     myLog("Prepared data: ", paste(capture.output(summary(plotData)), sep = "\n", collapse = "\n"))
     return(plotData)
+}
+
+createPDF <- function(docName, data, som, somInFeatureSpace) {
+    myLog("Creating plots and PDF ...")
+    
+    pdf(file = docName)
+    
+    boxplot(data.norm)
+    
+    plot(som, type="changes")
+    plot(som, type="codes", main="Codes")
+    #add.cluster.boundaries(som, som.hc)
+    plot.kohcodes.my(som,  main = "Codes", codeRendering = "segments",
+                     keepMargins = FALSE, palette.name = repRainbow,
+                     whatmap = NULL, maxlegendcols = 3)
+    
+    plot(som, type = "counts", main = "Counts")
+    #add.cluster.boundaries(som, som.hc)
+    plot(som, type = "quality", main = "Quality")
+    #add.cluster.boundaries(som, som.hc)
+    plot(som, type = "dist.neighbours", main = "SOM neighbour distances")
+    #add.cluster.boundaries(som, som.hc)
+    
+    #####
+    # plot world map with classification
+    # define colors for figures
+    .nunits <- length(unique(som.result$unit.classif))
+    .grp.colors <- rainbow(n = .nunits)
+    
+    plot(somInFeatureSpace[, 1:2], col = .grp.colors[somInFeatureSpace$som.unit], 
+         bg = .grp.colors[somInFeatureSpace$som.unit], pch = 16, cex = .4 )
+    legend("bottomleft", paste("SOM unit", 1:.nunits),
+           col = .grp.colors[1:.nunits],
+           pt.bg = .grp.colors[1:.nunits], pt.cex = 1, bty = "o", pch = 16,
+           bg = "white")
+    
+    dev.off()
+    myLog("Saved plots to file ", docName, " in ", getwd())
+}
+
+createShapefile <- function(data, filename) {
+    # export shapefile
+    coordinates(data) <-  ~x+y
+    writePointsShape(x = data, fn = paste0(filename, ".shp"), factor2char = TRUE, 
+                     max_nchar=254)
+    myLog("Saved shapefile ", filename, " in ", getwd())
+    myLog("Shapefiles size for\t\t", list.files(pattern = filename),
+          " is ",    file.info(list.files(pattern = filename))$size / (1024*1024),
+          " MB")
 }
 
 ###############################################################################

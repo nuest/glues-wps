@@ -34,175 +34,14 @@ require(vegan)
 require(maptools)
 
 ################################################################################
-# functions
+# functions and importing of externalized functions
 myLog <- function(...) {
     cat(paste0("[glues.systemarchetypes] ", Sys.time(), " | ", ..., "\n"))
 }
 
-plot.kohcodes.my <-
-    function (x, main, palette.name, bgcol=NULL, whatmap, codeRendering, 
-              keepMargins, maxlegendcols, ...) 
-    {
-        if (!keepMargins) {
-            opar <- par(c("mar", "ask"))
-            on.exit(par(opar))
-        }
-        if (is.null(palette.name)) 
-            palette.name <- terrain.colors
-        whatmap <- check.whatmap(x, whatmap)
-        nmaps <- length(whatmap)
-        if (is.list(x$codes)) {
-            if (prod(par("mfrow")) < nmaps) 
-                par(ask = TRUE)
-            for (i in 1:nmaps) {
-                huhn <- x
-                huhn$codes <- huhn$codes[[whatmap[i]]]
-                if (length(main) == length(x$codes)) {
-                    main.title <- main[whatmap[i]]
-                }
-                else {
-                    if (length(main) == nmaps) {
-                        main.title <- main[i]
-                    }
-                    else {
-                        if (length(main) == 1) {
-                            main.title <- main
-                        }
-                        else {
-                            if (is.null(main)) {
-                                if (!is.null(names(x$codes))) {
-                                    main.title <- names(x$codes)[whatmap[i]]
-                                }
-                                else {
-                                    main.title <- "Codes plot"
-                                }
-                            }
-                        }
-                    }
-                }
-                if (length(codeRendering) == length(x$codes)) {
-                    cR <- codeRendering[whatmap[i]]
-                }
-                else {
-                    if (length(codeRendering) == nmaps) {
-                        cR <- codeRendering[i]
-                    }
-                    else {
-                        cR <- codeRendering
-                    }
-                }
-                plot.kohcodes(huhn, main = main.title, palette.name = palette.name, 
-                              bgcol = bgcol, whatmap = NULL, codeRendering = cR, 
-                              keepMargins = TRUE, ...)
-            }
-        }
-        else {
-            codes <- x$codes
-            nvars <- ncol(codes)
-            if (is.null(codeRendering)) {
-                if (nvars < 15) {
-                    codeRendering <- "segments"
-                    maxlegendcols <- 3
-                }
-                else {
-                    codeRendering <- "lines"
-                }
-            }
-            margins <- rep(0.6, 4)
-            if (!is.null(main)) 
-                margins[3] <- margins[3] + 2
-            par(mar = margins)
-            if (codeRendering == "segments" & nvars < 40 & !is.null(colnames(codes))) {
-                kohonen:::plot.somgrid(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
-                                                                            2]), -2))
-                
-                current.plot <- par("mfg")
-                plot.width <- diff(par("usr")[1:2])
-                cex <- 1
-                leg.result <- legend(x = mean(x$grid$pts[, 1]), xjust = 0.5, 
-                                     y = 0, yjust = 1, legend = colnames(codes), cex = cex, 
-                                     plot = FALSE, ncol = min(maxlegendcols, nvars), 
-                                     fill = palette.name(nvars))
-                while (leg.result$rect$w > plot.width) {
-                    cex <- cex * 0.9
-                    leg.result <- legend(x = mean(x$grid$pts[, 1]), 
-                                         xjust = 0.5, y = 0, yjust = 1, legend = colnames(codes), 
-                                         cex = cex, plot = FALSE, ncol = min(maxlegendcols, 
-                                                                             nvars), fill = palette.name(nvars))
-                }
-                leg.result <- legend(x = mean(x$grid$pts[, 1]), xjust = 0.5, 
-                                     y = 0, yjust = 1, cex = cex, legend = colnames(codes), 
-                                     plot = FALSE, ncol = min(maxlegendcols, nvars), 
-                                     fill = palette.name(nvars), ...)
-                par(mfg = current.plot)
-                kohonen:::plot.somgrid(x$grid, ylim = c(max(x$grid$pts[, 2]) + min(x$grid$pts[, 
-                                                                            2]), -leg.result$rect$h))
-                legend(x = mean(x$grid$pts[, 1]), xjust = 0.5, y = 0, 
-                       yjust = 1, cex = cex, plot = TRUE, legend = colnames(codes), 
-                       ncol = min(maxlegendcols, nvars), fill = palette.name(nvars), 
-                       ...)
-            }
-            else {
-                kohonen:::plot.somgrid(x$grid, ...)
-            }
-            title.y <- max(x$grid$pts[, 2]) + 1.2
-            if (title.y > par("usr")[4] - 0.2) {
-                title(main)
-            }
-            else {
-                text(mean(range(x$grid$pts[, 1])), title.y, main, 
-                     adj = 0.5, cex = par("cex.main"), font = par("font.main"))
-            }
-            if (is.null(bgcol)) 
-                bgcol <- "transparent"
-            symbols(x$grid$pts[, 1], x$grid$pts[, 2], circles = rep(0.5, 
-                                                                    nrow(x$grid$pts)), inches = FALSE, add = TRUE, bg = bgcol)
-            if (codeRendering == "lines") {
-                yrange <- range(codes)
-                codes <- codes - mean(yrange)
-            }
-            else {
-                codemins <- apply(codes, 2, min)
-                codes <- sweep(codes, 2, codemins)
-            }
-            switch(codeRendering, segments = {
-                stars(codes, locations = x$grid$pts, labels = NULL, 
-                      len = 0.4, add = TRUE, col.segments = palette.name(nvars), 
-                      draw.segments = TRUE)
-            }, lines = {
-                for (i in 1:nrow(x$grid$pts)) {
-                    if (yrange[1] < 0 & yrange[2] > 0) {
-                        lines(seq(x$grid$pts[i, 1] - 0.4, x$grid$pts[i, 
-                                                                     1] + 0.4, length = 2), rep(x$grid$pts[i, 
-                                                                                                           2], 2), col = "gray")
-                    }
-                    lines(seq(x$grid$pts[i, 1] - 0.4, x$grid$pts[i, 
-                                                                 1] + 0.4, length = ncol(codes)), x$grid$pts[i, 
-                                                                                                             2] + codes[i, ] * 0.8/diff(yrange), col = "red")
-                }
-            }, stars = stars(codes, locations = x$grid$pts, labels = NULL, 
-                             len = 0.4, add = TRUE))
-        }
-        invisible()
-    }
-
-################################################################################
-# color palettes, suggested by Leo Lopes
-coolBlueHotRed <- function(n, alpha = 1) {
-    rainbow(n, end=4/6, alpha=alpha)[n:1]
-}
-repRainbow <- function(n, length.col=6) {
-    n.compl <- n %/% length.col
-    n.rest <-  n %% length.col
-    col.vec <- numeric(0)
-    if (n.compl > 0)
-        col.vec <- rep(rainbow(length.col), n.compl)
-    if (n.rest > 0)
-        col.vec <- c(col.vec, rainbow(n.compl, end= n.rest/ length.col ))
-    
-    return(col.vec)
-}
-
+# wps.import: basic-plots.R;
+# wps.import: advanced-plots.R;
+# wps.import: preprocessing.R;
 
 
 ################################################################################
@@ -296,52 +135,6 @@ myLog("Sample size: ", sampleSize, " | sampling type: ", samplingType)
 #für Funktion 'as.factor': Error in `[.data.frame`(f[[i]], v[, i]) : undefined columns selected
 #wps.on;
 
-sampleAndCombineData <- function(inputFiles, size, type) {
-    myLog("Loading data from ", length(inputFiles), " datasets")
-    
-    rasterList <- list()
-    
-    for (currentFile in inputFiles) {
-        fileName <- paste0(dataPath, "/", currentFile)
-        # testing: fileName <- paste0(dataPath, "/", "crop2005")
-        myLog("Processing ", fileName, " - file exists: ", file.exists(fileName))
-        
-        raster <- raster(fileName)
-        myLog("Current raster: ", toString(capture.output(summary(raster))))
-        
-        # add raster to the raster list
-        rasterList[[length(rasterList)+1]] <- raster 
-        
-        # if this is the first raster, run the sampling
-        if(!exists("theDF")) {
-            first <- FALSE
-            myLog("Running sampling based on raster ", names(raster), " from file ",
-                  fileName)
-            
-            # sample data
-            # the aim of this step is twofold:
-            #   1) reduce the numberof datapoints for the analysis
-            #   2) reduce the problem of spatial auto correlation
-            
-            spdf <- as(raster, "SpatialPixelsDataFrame")
-            summary(spdf)
-            sampelPixels <- spsample(spdf, n = size, type = type)
-            samplePoints <- as(sampelPixels, "SpatialPoints")
-            theDF <- cbind(coordinates(samplePoints))
-        }
-        
-        rasterSampled <- extract(raster, samplePoints) 
-        theDF <- cbind(theDF, rasterSampled)
-    }
-    
-    # convert to data.frame
-    theDF <- as.data.frame(theDF)
-    names(theDF) <- c("x", "y", files)
-    myLog("Created data frame with size ", toString(dim(theDF)), " and variables ",
-          toString(names(theDF)))
-    
-    return(theDF)
-}
 
 # do the sampling
 data <- sampleAndCombineData(files, sampleSize, samplingType)
@@ -475,56 +268,6 @@ outputFilePrefix <- "sysarch-som_"
 somIterations <- 1 # 5
 #wps.on;
 
-
-createPDF <- function(docName, data, som, somInFeatureSpace) {
-    myLog("Creating plots and PDF ...")
-    
-    pdf(file = docName)
-    
-    boxplot(data.norm)
-    
-    plot(som, type="changes")
-    plot(som, type="codes", main="Codes")
-    #add.cluster.boundaries(som, som.hc)
-    plot.kohcodes.my(som,  main = "Codes", codeRendering = "segments",
-                     keepMargins = FALSE, palette.name = repRainbow,
-                     whatmap = NULL, maxlegendcols = 3)
-    
-    plot(som, type = "counts", main = "Counts")
-    #add.cluster.boundaries(som, som.hc)
-    plot(som, type = "quality", main = "Quality")
-    #add.cluster.boundaries(som, som.hc)
-    plot(som, type = "dist.neighbours", main = "SOM neighbour distances")
-    #add.cluster.boundaries(som, som.hc)
-    
-    #####
-    # plot world map with classification
-    # define colors for figures
-    .nunits <- length(unique(som.result$unit.classif))
-    .grp.colors <- rainbow(n = .nunits)
-    
-    plot(somInFeatureSpace[, 1:2], col = .grp.colors[somInFeatureSpace$som.unit], 
-         bg = .grp.colors[somInFeatureSpace$som.unit], pch = 16, cex = .4 )
-    legend("bottomleft", paste("SOM unit", 1:.nunits),
-           col = .grp.colors[1:.nunits],
-           pt.bg = .grp.colors[1:.nunits], pt.cex = 1, bty = "o", pch = 16,
-           bg = "white")
-    
-    dev.off()
-    myLog("Saved plots to file ", docName, " in ", getwd())
-}
-
-createShapefile <- function(data, filename) {
-    # export shapefile
-    coordinates(data) <-  ~x+y
-    writePointsShape(x = data, fn = paste0(filename, ".shp"), factor2char = TRUE, 
-                     max_nchar=254)
-    myLog("Saved shapefile ", filename, " in ", getwd())
-    myLog("Shapefiles size for\t\t", list.files(pattern = filename),
-          " is ",    file.info(list.files(pattern = filename))$size / (1024*1024),
-          " MB")
-}
-
 # NOTE: only the last created files (last run loop) will be returned from a WPS process
 for(topology in topologies) {
     myLog("Running som with topology: xdim = ", topology[[1]], ", ydim = ",
@@ -579,7 +322,7 @@ for(topology in topologies) {
         # abstract = an R data.frame with the sample input data and the calculated 
         # classifications for each cell and distance to the code vector;
         output.plots <- paste0(outputFilePrefix, .topoString, .sampleRunString, ".pdf")
-        createPDF(output.plots, data, som.result, systemArchetypesData)
+        #createPDF(output.plots, data, som.result, systemArchetypesData)
         
         ## create shapefile
         ## wps.out: output.shapefile, type = shp, title = ouput datasets,
@@ -601,7 +344,6 @@ myLog("#### Done with som (3/4)")
 ################################################################################
 # 4) Advanced plots
 ################################################################################
-# wps.import: advanced-plots.R;
 
 # map process output
 # wps.out: output.map, type = png, title = map of LSAs,
