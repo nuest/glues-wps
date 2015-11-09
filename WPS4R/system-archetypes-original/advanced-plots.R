@@ -306,11 +306,14 @@ savePlots <- function(vectors, data, paletteAndLabels = createPlotPalette(16),
         }
         col <- paletteAndLabels[["color"]][i]
         nam <- paletteAndLabels[["name"]][i]
+        variableName <- paste0("SOM", i)
         if((i %% 4) == 1) { # add names for every forth plot
-            lsaBarplot(somunits$SOM1, name = nam, col = col, names = paste(somunits$variables), leftmar = 9)
+            myLog("New line of plots started... plotting ", variableName)
+            lsaBarplot(somunits[[variableName]], name = nam, col = col, names = paste(somunits$variables), leftmar = 9)
         }
         else {
-            lsaBarplot(somunits$SOM2, name = nam, col = col)
+            myLog("Plotting ", variableName)
+            lsaBarplot(somunits[[variableName]], name = nam, col = col)
         }
     }
     
