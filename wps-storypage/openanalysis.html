@@ -49,7 +49,7 @@
             <i>Figure: Screenshot of some of output plots based on mere 100 sampling points for illustration purposes: (a) classification information (output of the self-organizing map) showing how the input variables (colour-coded) influence each of the output classes (circles at the top); (b) global plot of "property-distance" which is a measure of classification quality; (c) the global land use archetypes map in a very coarse version; (d) statistical background information of the self-organizing map.</i>
         </p>
 		
-		<p class="text">Hover over the input fields with the cursor to get more information about each parameter, or use the button to fill in default values for fields that have no value yet. The product of the "somGridDim" values configures the number of output classes, i.e. "2,3" will result in 6 output classes. The higher the sampling size, the longer the process will run - so if you want to experiment, start with "1000", which arguably is not a lot for the whole globe. The original analysis used a value of 1 million sample points. After execution, click the "refresh" icon in the top left cornner of the result area to check if the process has finished. Please expect the process to run a few minutes.</p>
+		<p class="text">Hover over the input fields with the cursor to get more information about each parameter, or use the button to fill in default values for fields that have no value yet. The product of the "somGridDim" values configures the number of output classes, i.e. "2,3" will result in 6 output classes. The higher the sampling size, the longer the process will run - so if you want to experiment, start with "1000", which arguably is not a lot for the whole globe. The original analysis used a value of 1 million sample points, but that takes quite some time to complete. After execution, click the "refresh" icon in the top left corner of the result area to check if the process has finished. Please expect the process to run a few minutes.</p>
 		
         <div id="wrapper" class="text">
             <div style="margin: 1em;">
@@ -150,7 +150,9 @@
 										"value" : "Input_Data_v2",
 										"hidden" : true
 									}],
-							"sampleSize" : [ {} ],
+							"sampleSize" : [ {
+										"value" : "10000"
+									} ],
 							"samplingType" : [
 									{
 										"value" : "regular"
